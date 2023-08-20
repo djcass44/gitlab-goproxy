@@ -25,7 +25,7 @@ jobs:
       - run: |
           ref="${GITHUB_REF_NAME#v}"
           echo "$GITHUB_TOKEN" | helm registry login ghcr.io --username=oauth-token --password-stdin
-          helm package charts/gitlab-goproxy --version "$ref"
+          helm package charts/gitlab-goproxy --app-version "$ref"
           
           echo "Creating chart release $ref"
           helm push "gitlab-goproxy-$ref.tgz" "oci://ghcr.io/$GITHUB_REPOSITORY/helm-charts"

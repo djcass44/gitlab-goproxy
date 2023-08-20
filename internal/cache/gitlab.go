@@ -58,6 +58,7 @@ func (c *GitLabCache) Get(ctx context.Context, name string) (io.ReadCloser, erro
 	}
 
 	// return the data
+	log.Info("located cached module")
 	return io.NopCloser(bytes.NewReader(data)), nil
 }
 
@@ -76,6 +77,7 @@ func (c *GitLabCache) Put(ctx context.Context, name string, content io.ReadSeeke
 		log.Error(err, "failed to publish package")
 		return err
 	}
+	log.Info("successfully published package")
 	return nil
 }
 

@@ -2,10 +2,18 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+gitlab:
+  url: ""
+  tokenSecretRef:
+    name: ""
+    key: ""
+  projectId: 0
+
 replicaCount: 1
 
 image:
-  repository: nginx
+  registry: ghcr.io
+  repository: djcass44/gitlab-goproxy
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""

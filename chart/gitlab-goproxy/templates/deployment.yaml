@@ -27,24 +27,43 @@ spec:
       serviceAccountName: {{ include "gitlab-goproxy.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: APP_GITLAB_URL
+              value: {{ .Values.gitlab.url }}
+            - name: APP_GITLAB_PROJECT_ID
+              value: {{ .Values.gitlab.projectId | quote }}
+            - name: APP_GITLAB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gitlab.tokenSecretRef.name }}
+                  key: {{ .Values.gitlab.tokenSecretRef.key }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: 8080
               protocol: TCP
+            - name: probes
+              containerPort: 8081
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp
           livenessProbe:
             httpGet:
-              path: /
-              port: http
+              path: /livez
+              port: probes
           readinessProbe:
             httpGet:
-              path: /
-              port: http
+              path: /readyz
+              port: probes
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

@@ -2,17 +2,26 @@ package main
 
 import (
 	"context"
+	"github.com/djcass44/gitlab-goproxy/internal/cache"
 	"github.com/djcass44/go-utils/logging"
+	"github.com/goproxy/goproxy"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/xanzy/go-gitlab"
 	"gitlab.com/autokubeops/serverless"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"os"
 )
 
 type environment struct {
 	Port     int `envconfig:"PORT" default:"8080"`
 	LogLevel int `split_words:"true"`
+	GitLab   struct {
+		URL       string `split_words:"true" required:"true"`
+		Token     string `split_words:"true" required:"true"`
+		ProjectID int    `split_words:"true" required:"true"`
+	}
 }
 
 func main() {
@@ -25,10 +34,22 @@ func main() {
 
 	log, _ := logging.NewZap(context.Background(), zc)
 
+	git, err := gitlab.NewClient(e.GitLab.Token, gitlab.WithBaseURL(e.GitLab.URL))
+	if err != nil {
+		log.Error(err, "failed to create gitlab client")
+		os.Exit(1)
+	}
+
 	router := mux.NewRouter()
+	router.Use(logging.Middleware(log))
+
+	router.PathPrefix("/").Handler(&goproxy.Goproxy{
+		Cacher:        cache.NewGitLabCache(git, e.GitLab.ProjectID),
+		ProxiedSUMDBs: nil,
+	})
 
 	serverless.NewBuilder(router).
-		WithPort(8080).
+		WithPort(e.Port).
 		WithLogger(log).
 		Run()
 }

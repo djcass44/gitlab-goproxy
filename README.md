@@ -24,7 +24,7 @@ This project contains an implementation of the [`GOPROXY` protocol](https://go.d
     There's plenty more that can be figured, but we will leave that as an exercise to the reader.
 5. Deploy the application:
     ```shell
-    helm install goproxy ./chart/gitlab-goproxy -f values.yaml
+    helm install goproxy oci://ghcr.io/djcass44/gitlab-goproxy/helm-charts/gitlab-goproxy --version v0.1.3 -f values.yaml
     ```
    > We recommend using a GitOps tool (e.g., FluxCD, ArgoCD) rather than doing this manually.
    

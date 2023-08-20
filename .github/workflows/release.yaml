@@ -23,9 +23,11 @@ jobs:
           version: latest
           token: ${{ secrets.GITHUB_TOKEN }}
       - run: |
-          helm registry login ghcr.io --username=oauth-token --password=$GITHUB_TOKEN
-          helm package charts/gitlab-goproxy --version $GITHUB_REF
-          helm push "gitlab-goproxy-$GITHUB_REF.tgz" "oci://ghcr.io/$GITHUB_REPOSITORY/helm-charts"
+          echo "$GITHUB_TOKEN" | helm registry login ghcr.io --username=oauth-token --password-stdin
+          helm package charts/gitlab-goproxy --version $GITHUB_REF_NAME
+          
+          echo "Creating chart release $GITHUB_REF_NAME"
+          helm push "gitlab-goproxy-$GITHUB_REF_NAME.tgz" "oci://ghcr.io/$GITHUB_REPOSITORY/helm-charts"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   goreleaser:

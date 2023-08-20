@@ -1,0 +1,38 @@
+project_name: gitlab-goproxy
+# go build configuration
+builds:
+  - id: ggp
+    env: [CGO_ENABLED=0]
+    binary: ggp
+    main: ./cmd/ggp
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+
+# verifiable builds
+gomod:
+  proxy: true
+  env:
+    - GOPROXY=https://prism.v2.dcas.dev/api/go,https://proxy.golang.org,direct
+    - GOSUMDB=sum.golang.org
+  mod: mod
+
+# generate container images
+kos:
+  - id: default
+    repository: ghcr.io/djcass44/gitlab-goproxy
+    build: ggp
+    main: ./cmd/ggp/...
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    tags:
+      - latest
+      - "{{ .Tag }}"
+    sbom: cyclonedx
+    ko_data_creation_time: ''
+    creation_time: ''
+    bare: true
+    preserve_import_paths: false

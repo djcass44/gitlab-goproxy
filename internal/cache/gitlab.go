@@ -20,14 +20,12 @@ package cache
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"github.com/djcass44/gitlab-goproxy/internal/parser"
 	"github.com/go-logr/logr"
 	"github.com/xanzy/go-gitlab"
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -48,7 +46,7 @@ func (c *GitLabCache) Get(ctx context.Context, name string) (io.ReadCloser, erro
 	}
 
 	// try to download the module
-	data, resp, err := c.client.GenericPackages.DownloadPackageFile(c.projectId, safeName(pkg.Name), pkg.Version, superSafeName(pkg.String()))
+	data, resp, err := c.client.GenericPackages.DownloadPackageFile(c.projectId, safeName(pkg.Name), pkg.Version, safeName(pkg.String()))
 	if err != nil {
 		// if it doesn't exist, tell the goproxy to go download it manually
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
@@ -73,7 +71,7 @@ func (c *GitLabCache) Put(ctx context.Context, name string, content io.ReadSeeke
 	}
 
 	// upload the given data
-	_, _, err = c.client.GenericPackages.PublishPackageFile(c.projectId, safeName(pkg.Name), pkg.Version, superSafeName(pkg.String()), content, &gitlab.PublishPackageFileOptions{})
+	_, _, err = c.client.GenericPackages.PublishPackageFile(c.projectId, safeName(pkg.Name), pkg.Version, safeName(pkg.String()), content, &gitlab.PublishPackageFileOptions{})
 	if err != nil {
 		log.Error(err, "failed to publish package")
 		return err
@@ -82,13 +80,8 @@ func (c *GitLabCache) Put(ctx context.Context, name string, content io.ReadSeeke
 }
 
 func safeName(s string) string {
+	s = strings.ReplaceAll(s, "/@v/", "/")
 	s = strings.ReplaceAll(s, "/", "-")
 	s = strings.ReplaceAll(s, "!", "_")
 	return s
-}
-
-func superSafeName(s string) string {
-	ext := filepath.Ext(s)
-	name := strings.TrimSuffix(s, ext)
-	return base64.URLEncoding.EncodeToString([]byte(name)) + ext
 }

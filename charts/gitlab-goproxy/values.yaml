@@ -8,6 +8,7 @@ gitlab:
     name: ""
     key: ""
   projectId: 0
+  hidePackages: false
 
 replicaCount: 1
 

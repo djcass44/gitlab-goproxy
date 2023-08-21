@@ -24,8 +24,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - run: |
           ref="${GITHUB_REF_NAME#v}"
-          chart_version="0.2.0"
+          chart_version="0.2.1"
           echo "$GITHUB_TOKEN" | helm registry login ghcr.io --username=oauth-token --password-stdin
+          cp README.md charts/gitlab-goproxy/
           helm package charts/gitlab-goproxy --app-version "$ref" --version "$chart_version"
           
           echo "Creating chart release $ref / $chart_version"

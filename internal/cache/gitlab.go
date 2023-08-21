@@ -29,10 +29,11 @@ import (
 	"strings"
 )
 
-func NewGitLabCache(client *gitlab.Client, projectId int) *GitLabCache {
+func NewGitLabCache(client *gitlab.Client, projectId int, hidePackages bool) *GitLabCache {
 	return &GitLabCache{
-		client:    client,
-		projectId: projectId,
+		client:       client,
+		projectId:    projectId,
+		hidePackages: hidePackages,
 	}
 }
 
@@ -63,7 +64,7 @@ func (c *GitLabCache) Get(ctx context.Context, name string) (io.ReadCloser, erro
 }
 
 func (c *GitLabCache) Put(ctx context.Context, name string, content io.ReadSeeker) error {
-	log := logr.FromContextOrDiscard(ctx).WithValues("name", name)
+	log := logr.FromContextOrDiscard(ctx).WithValues("name", name, "hidden", c.hidePackages)
 	log.Info("uploading module to cache")
 
 	pkg, err := parser.NewPackage(name)
@@ -72,7 +73,13 @@ func (c *GitLabCache) Put(ctx context.Context, name string, content io.ReadSeeke
 	}
 
 	// upload the given data
-	_, _, err = c.client.GenericPackages.PublishPackageFile(c.projectId, safeName(pkg.Name), pkg.Version, safeName(pkg.String()), content, &gitlab.PublishPackageFileOptions{})
+	status := gitlab.PackageDefault
+	if c.hidePackages {
+		status = gitlab.PackageHidden
+	}
+	_, _, err = c.client.GenericPackages.PublishPackageFile(c.projectId, safeName(pkg.Name), pkg.Version, safeName(pkg.String()), content, &gitlab.PublishPackageFileOptions{
+		Status: gitlab.GenericPackageStatus(status),
+	})
 	if err != nil {
 		log.Error(err, "failed to publish package")
 		return err

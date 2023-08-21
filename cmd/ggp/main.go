@@ -35,9 +35,10 @@ type environment struct {
 	Port     int `envconfig:"PORT" default:"8080"`
 	LogLevel int `split_words:"true"`
 	GitLab   struct {
-		URL       string `split_words:"true" required:"true"`
-		Token     string `split_words:"true" required:"true"`
-		ProjectID int    `split_words:"true" required:"true"`
+		URL          string `split_words:"true" required:"true"`
+		Token        string `split_words:"true" required:"true"`
+		ProjectID    int    `split_words:"true" required:"true"`
+		HidePackages bool   `split_words:"true"`
 	}
 }
 
@@ -61,7 +62,7 @@ func main() {
 	router.Use(logging.Middleware(log))
 
 	router.PathPrefix("/").Handler(&goproxy.Goproxy{
-		Cacher:        cache.NewGitLabCache(git, e.GitLab.ProjectID),
+		Cacher:        cache.NewGitLabCache(git, e.GitLab.ProjectID, e.GitLab.HidePackages),
 		ProxiedSUMDBs: nil,
 	})
 

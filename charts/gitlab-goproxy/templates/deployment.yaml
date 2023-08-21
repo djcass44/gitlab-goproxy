@@ -46,6 +46,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.gitlab.tokenSecretRef.name }}
                   key: {{ .Values.gitlab.tokenSecretRef.key }}
+            - name: APP_GITLAB_HIDE_PACKAGES
+              value: {{ .Values.gitlab.hidePackages | quote }}
           ports:
             - name: http
               containerPort: 8080

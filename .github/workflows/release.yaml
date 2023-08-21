@@ -23,8 +23,8 @@ jobs:
           version: latest
           token: ${{ secrets.GITHUB_TOKEN }}
       - run: |
-          ref="${GITHUB_REF_NAME#v}"
-          chart_version="0.2.1"
+          ref="$GITHUB_REF_NAME"
+          chart_version="0.2.2"
           echo "$GITHUB_TOKEN" | helm registry login ghcr.io --username=oauth-token --password-stdin
           cp README.md charts/gitlab-goproxy/
           helm package charts/gitlab-goproxy --app-version "$ref" --version "$chart_version"
